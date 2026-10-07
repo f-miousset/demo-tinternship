@@ -28,7 +28,10 @@ same targets, so there is one definition of each command.
 - **Renovate** (`renovate.json`) ignores `app/**`: a bump there would make the
   published code differ from the tag it claims to be. Patches, pins, digests
   and devDependency minors automerge after the gate; majors, base images and
-  the workflow's own actions wait for a person.
+  the workflow's own actions wait for a person. TypeScript is held below 7
+  until typescript-eslint supports it — Renovate proposed the major within a
+  minute of the first push (2026-10-08), from a config that had dropped the
+  hold.
 
 ## What could still be green and wrong
 

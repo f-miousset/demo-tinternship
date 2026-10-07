@@ -80,6 +80,13 @@
         "major"
       ],
       "automerge": false
+    },
+    {
+      "description": "Hold TypeScript below 7.0.0 until typescript-eslint supports TS 7 — the same hold as the real app's and the other demos'. → documentation/verification.md",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "< 7.0.0"
     }
   ],
   "ignorePaths": [
