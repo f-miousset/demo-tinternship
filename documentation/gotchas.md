@@ -2,6 +2,18 @@
 
 Newest first. Each entry: what happened, how it showed, what fixed it.
 
+### The demo shipped without a service worker — 2026-10-08
+Found on the live origin, not by any check: `navigator.serviceWorker` had no
+registration, so the demo could not be installed as an app. `main.demo.tsx`
+imported the app with a dynamic `import()` (to run it after `installMock()`),
+which evaluates after the window's `load` event — and the app registers its
+worker *on* `load` (`app/frontend/src/lib/pwa.ts`), so the listener was added
+too late to ever fire. The mock is now installed by `mock/boot.ts` as a side
+effect of being imported first, and the app is a plain static import after
+it: ES modules evaluate in import order, so the order holds and the app runs
+during the load, as in production. **Check the worker on the live origin after
+any change to the entry.**
+
 ### The privacy check found what the hand sweep missed — 2026-10-08
 The first public snapshot passed a manual search for the author's name and
 e-mail, then `ci/check-privacy.py` flagged the author's school in a docstring

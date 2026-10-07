@@ -9,9 +9,9 @@ behind it.
 
 ```
 browser ─────────────────────────────────────────────────────────────────────┐
-│  demo/src/main.demo.tsx                                                     │
-│    1. installMock()      window.fetch for /api/* → demo/src/mock/routes.ts  │
-│    2. import app/frontend/src/main.tsx   (the real app, unmodified)         │
+│  demo/src/main.demo.tsx  (static imports, evaluated in this order)          │
+│    1. ./mock/boot        window.fetch for /api/* → demo/src/mock/routes.ts  │
+│    2. app/frontend/src/main.tsx   (the real app, unmodified)                │
 │    3. <DemoNotice/>      its own React root: notice, Demo pill, auto-fill   │
 │                                                                             │
 │  mock/store.ts   one visitor's state in localStorage ("demo-tinternship:…") │

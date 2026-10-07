@@ -6,7 +6,9 @@ floating glass header and tab bar, the three-position System/Light/Dark switch
 (stamped before paint by `theme-boot.js`, a file because the CSP forbids inline
 scripts), the manifest, the maskable icons and the service worker
 (`app/frontend/public/`). The service worker never touches `/api`, so it does
-not cache the demo's prebuilt documents.
+not cache the demo's prebuilt documents. It registers on the window's `load`
+event, which is why the demo's entry must import the app statically
+([gotchas.md](gotchas.md)).
 
 The demo adds two things of its own (`demo/src/demo.css`, on the app's tokens):
 
