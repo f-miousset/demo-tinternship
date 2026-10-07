@@ -1,0 +1,45 @@
+/* The demo's own chrome: the "Demo" pill and the auto-fill toast. Plain CSS on
+   the app's tokens (app/frontend/src/index.css), so both follow the theme the
+   app's three-position switch sets, and the glass is the app's `.glass`.
+
+   The pill sits bottom-left at the height of the app's floating action button
+   (`.fab-dock`, bottom-right) so the two read as one row above the tab bar and
+   neither covers it. Same 44px target as every other control. */
+.demo-pill {
+  position: fixed;
+  z-index: 26;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+}
+
+.demo-pill-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 0.25);
+}
+
+/* At the top: every sheet that holds an auto-filled box rises from the bottom,
+   and a toast down there covered the very field it was describing. */
+.demo-toast {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top) + 0.75rem);
+  width: min(28rem, calc(100vw - 2rem));
+  text-align: center;
+}
+
+/* From `sm` the tab bar is not at the bottom edge any more (see the app's
+   Layout), so the pill drops to the corner. */
+@media (min-width: 640px) {
+  .demo-pill {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

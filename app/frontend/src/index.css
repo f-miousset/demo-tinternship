@@ -1,0 +1,922 @@
+@import "tailwindcss";
+
+/* Tailwind's `dark:` variant, pointed at `<html data-theme>` instead of at
+   `prefers-color-scheme`.
+
+   The 240-odd `dark:` utilities in the components and every token block below
+   now read one attribute, which `lib/theme.ts` stamps with the *resolved*
+   theme — the device's answer when the choice is "system", the choice itself
+   otherwise. The media query is deliberately not kept as a second source: two
+   of them disagree the moment someone overrides the device, and the one that
+   loses is whichever the cascade happens to put last.
+
+   `:where()` so the variant costs no specificity, exactly as Tailwind's own
+   `dark:` does — a `dark:` utility must still lose to a later plain one. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  /* A near-neutral ramp with a trace of warmth, so flame sits on it without
+     the blue-grey clash the old indigo-leaning ramp had. 950 is the near-black
+     the dark theme is built on. */
+  --color-ink-50: #fafafa;
+  --color-ink-100: #f3f2f5;
+  --color-ink-200: #e4e1e7;
+  --color-ink-300: #c5c1cb;
+  --color-ink-400: #9894a1;
+  --color-ink-500: #6f6b78;
+  --color-ink-600: #55515d;
+  --color-ink-700: #403c48;
+  --color-ink-800: #2a2630;
+  --color-ink-900: #17141b;
+  --color-ink-950: #0b090e;
+
+  /* The flame. `accent-*` keeps its name so every button, focus ring, badge and
+     nav pill in the app rebrands from these four lines rather than from forty
+     components. 600 is the one that carries text on it. */
+  --color-accent-400: #ff7854;
+  --color-accent-500: #fd5068;
+  --color-accent-600: #fd267d;
+  --color-accent-700: #c81e5b;
+
+  /* The two ends of the gradient, for `.brand-gradient`. Named separately from
+     the ramp because a gradient needs the orange and the pink at once, and
+     `accent-400`/`accent-600` would read as "two steps of a scale". */
+  --color-flame-from: #ff7854;
+  --color-flame-to: #fd267d;
+
+  /* Tracker's colour. Emerald sat badly next to flame — both warm-lit, and the
+     two halves of the app stopped being distinguishable at a glance. */
+  --color-track-400: #2dd4bf;
+  --color-track-500: #14b8a6;
+  --color-track-600: #0d9488;
+  --color-track-700: #0f766e;
+
+  /* The two ends of `.track-gradient`, named separately from the ramp for the
+     same reason `flame-*` is: this needs the green end and the blue end at
+     once, and two steps of one scale would only fade the lightness.
+
+     The *travel* is what makes a fade read as a fade. Flame crosses 40° of hue
+     at near-constant lightness (orange→pink), so its opposite number has to
+     cross a comparable arc rather than merely get darker — teal→cyan-blue,
+     27°. Stopping at #0891b2 stayed inside teal and read as one colour beside
+     the flame; going greener at the near end was not available, because hue
+     160 at this lightness *is* emerald, and emerald is what the Tracker was
+     moved off (see the palette note above).
+
+     Both ends carry white at nearly the flame's own contrasts — 2.5 → 4.1
+     against 2.6 → 3.7 — which is what makes the two pills read as one pair
+     rather than one bright and one heavy. Re-check that if either moves. */
+  --color-track-from: #14b8a6;
+  --color-track-to: #0284c7;
+
+  /* One radius scale, so a control nested in a glass container can take its
+     parent's radius minus its own inset instead of an unrelated number. */
+  --radius-sheet: 1.75rem;
+  --radius-card: 1.25rem;
+  --radius-control: 0.875rem;
+  --radius-chip: 0.5rem;
+}
+
+:root {
+  /* One value, not `light dark`: the theme is a decision now, and this is what
+     makes the browser's own furniture — form controls, scrollbars, the caret,
+     `input[type=date]`'s picker — follow it rather than the device underneath
+     it. `data-theme` is always stamped before the first paint (see
+     `public/theme-boot.js`), so the bare `:root` here is the light half of the
+     pair and not a fallback anybody is expected to hit. */
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Dragging past the top does nothing, and that is the whole of it.
+
+   The document is this app's one scroller, and on a phone the header is welded
+   to the top edge while you are at the top of it. An elastic overscroll lifts
+   that slab off the bezel and shows `--page-bg` in the strip it opens — five
+   attempts at owning that strip all shipped nothing (decisions.md § *Dragging
+   past the top is the browser's, not ours*), because every one of them tried to
+   fill a gap instead of refusing to open it. This refuses to open it.
+
+   Three things about where it is written:
+
+   - **On the root element**, because that is the one the viewport takes its
+     overscroll from. A copy on `body` is not the same rule and is not a
+     substitute for this one.
+   - **`-y` only.** `overscroll-behavior-x` is what the browser's back-swipe
+     rides on, and this app has nothing horizontal of its own to protect.
+   - **Not in a media query**, though the reason above is a phone one: the
+     bounce a trackpad opens is the same bounce, above the same header.
+
+   Inner scrollers keep saying `overscroll-contain` for themselves — this stops
+   the *viewport* bouncing, not a sheet's list handing its leftover scroll to the
+   page. And it needs Safari 16+ (2022): older engines still bounce, which is the
+   behaviour the 6px merge threshold in `lib/useScrolled.ts` was already written
+   to survive. */
+html {
+  overscroll-behavior-y: none;
+}
+
+
+/* The page's own colour, named because three things must agree on it: `body`,
+   the browser's `theme-color` behind the status bar, and the canvas an elastic
+   overscroll exposes above the document — which is `body`'s background, so it
+   agrees for free.
+
+   Two copies of these two hex values live outside this file and cannot read it:
+   `public/theme-boot.js`, which sets `theme-color` before any stylesheet has
+   applied, and `PAGE_BG` in `lib/theme.ts`, which sets it again whenever the
+   theme changes. Move a value here and move it in both. */
+:root {
+  --page-bg: #fafafa;
+}
+
+:root[data-theme="dark"] {
+  --page-bg: #0b090e;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--page-bg);
+  color: var(--color-ink-900);
+  /* Phones in landscape shrink the layout font otherwise. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+[data-theme="dark"] body {
+  color: var(--color-ink-100);
+}
+
+/* ---------------------------------------------------------------------------
+   Liquid Glass
+
+   Apple's own rule is the one that keeps this app readable: glass is a layer
+   that floats *above* content, and it is never the content itself. Everything
+   here is one of two things — something you read (agent prose, a rendered
+   résumé, a JSON payload, a trace timeline, a field you type in) or something
+   you act with (the header, the tab bar, a modal, the deck's action bar).
+   `.glass` belongs on the second kind only. On the first it costs contrast on
+   exactly the text this whole project exists to produce, which is why
+   `documentation/design-language.md` carries the table of what may never wear
+   it.
+
+   Plain classes rather than Tailwind utilities, like `.gutter` above: each sets
+   several properties a utility on the same element may also set, and unlayered
+   CSS wins that outright instead of depending on how the two sort inside the
+   utilities layer.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* The pane's own colour, split from its opacity because the opacity is the
+     one number in this file the *user* sets. `ThemeSwitch`'s slider writes
+     `--glass-alpha` onto `<html>` — a single inline custom property overriding
+     this one — and `public/theme-boot.js` writes it again before the first
+     paint. Everything else here is derived, so a surface cannot be missed:
+     nothing declares an alpha of its own.
+
+     **The slider runs the whole way to a window.** At `0` there is no pane at
+     all — no tint, no blur, no saturation, no rim, no sheen, no shadow — and
+     you read the page straight through the header. That is one number reaching
+     zero rather than a special case, because `--glass-strength` below multiplies
+     everything that *is* the material. A pane fading its colour out while
+     keeping a 20px blur would not be a window, it would be a smear.
+
+     `--glass-strength` is 1 at the default and at anything thicker, and tapers
+     to 0 as the base approaches clear. Dividing by the default is what pins it:
+     every value from 0.62 up is the glass this app shipped with, and only the
+     transparent half of the track dissolves it.
+
+     The two grades move together, a notch apart, and that notch is a share of
+     the strength too — `.glass-heavy` is the pane with body text scrolling
+     under it, so it stays the more occluding of the two everywhere except the
+     one end where neither of them is anything. `min()` is the ceiling: the base
+     reaches 1, and a heavy grade of 1.1 is not a colour.
+
+     Neither `prefers-reduced-transparency` nor `prefers-contrast: more` reads
+     any of this. Both replace `background-color` outright further down, so a
+     device asking for solid surfaces gets them whatever the slider says. */
+  --glass-rgb: 255 255 255;
+  --glass-alpha: 0.62;
+  --glass-strength: min(1, calc(var(--glass-alpha) / 0.62));
+  --glass-alpha-heavy: min(1, calc(var(--glass-alpha) + 0.1 * var(--glass-strength)));
+  --glass-bg: rgb(var(--glass-rgb) / var(--glass-alpha));
+  /* The strength as a percentage, because that is the shape `color-mix()` wants.
+     Every decorative colour below is mixed towards `transparent` by it, which
+     multiplies the alpha it already carries — one expression per colour instead
+     of a second set of tokens per theme. */
+  --glass-mix: calc(var(--glass-strength) * 100%);
+  --glass-tint: rgb(253 38 125 / 0.05);
+  --glass-border: rgb(255 255 255 / 0.55);
+  /* The lit edge and the shaded one. Together they read as a bevel catching
+     light from above — which is the whole difference between this and a
+     frosted panel from 2013. */
+  --glass-specular: rgb(255 255 255 / 0.85);
+  --glass-shade: rgb(23 20 27 / 0.08);
+  --glass-drop: rgb(23 20 27 / 0.14);
+  /* Both fade with the glass: `saturate` is as much of the effect as the blur
+     is, and an identity `saturate(100%)` is what "looking through" means. */
+  --glass-blur: calc(20px * var(--glass-strength));
+  --glass-saturate: calc(100% + 80% * var(--glass-strength));
+  /* What every glass surface becomes when translucency is refused or
+     unsupported. Named here so a fallback is one variable, not a rewrite. */
+  --glass-solid: #ffffff;
+
+  /* The heavier grade, for the one surface that floats over scrolling body
+     text: more opaque, so words passing underneath stop being readable through
+     it, and a brighter rim because a floating card has two lit edges rather
+     than one. `--glass-highlight` is the sheen `.glass-heavy::before` paints
+     down from the top edge. */
+  /* The selected tab's own surface. Not glass and deliberately not scaled by
+     the slider: it sits *inside* a pane, a backdrop filter nested in another one
+     costs a full recomposite for a difference nobody can see, and the one thing
+     that must stay legible when the pane is dragged to a window is which of the
+     two screens you are on. The numbers are a sibling app's `--glass-selector-*`,
+     which is where this shape comes from. */
+  --nav-selected-bg: rgb(255 255 255 / 0.85);
+  --nav-selected-border: rgb(23 20 27 / 0.06);
+  --nav-selected-shadow: 0 2px 10px rgb(23 20 27 / 0.08), 0 1px 2px rgb(23 20 27 / 0.04);
+
+  /* The phone tab bar's single pill, at rest and lifted into a lens. At rest
+     it is iOS 26's shape — a flat neutral wash with no halo, because in a bar
+     this small the tint on the icon and the label is already the whole claim.
+     Lifted it takes the pane's own colour, fully opaque: the tabs it passes
+     over are drawn *again* inside it, magnified, and the real ones must not show
+     through beside their copies — a page cannot bend what is behind it, so the
+     lens hides it and draws the bent version itself. A bright rim, a faint split
+     of warm and cool light along its sides and a drop let it hang over the
+     page. */
+  --tab-pill-bg: rgb(23 20 27 / 0.07);
+  --tab-lens-bg: rgb(var(--glass-rgb));
+  --tab-lens-rim: rgb(255 255 255 / 0.85);
+  --tab-lens-drop: rgb(23 20 27 / 0.18);
+
+  --glass-bg-heavy: rgb(var(--glass-rgb) / var(--glass-alpha-heavy));
+  --glass-border-light: rgb(23 20 27 / 0.10);
+  --glass-highlight: rgb(255 255 255 / 0.90);
+  --glass-float-drop: rgb(23 20 27 / 0.14);
+}
+
+:root[data-theme="dark"] {
+  /* Only the colour changes with the theme. The alphas, and the user's slider
+     behind them, are declared once above and resolve against whichever triplet
+     this element carries. */
+  --glass-rgb: 30 27 35;
+  --glass-tint: rgb(255 120 84 / 0.06);
+  --glass-border: rgb(255 255 255 / 0.12);
+  --glass-specular: rgb(255 255 255 / 0.16);
+  --glass-shade: rgb(0 0 0 / 0.35);
+  --glass-drop: rgb(0 0 0 / 0.45);
+  --glass-solid: #17141b;
+
+  --glass-border-light: rgb(255 255 255 / 0.20);
+  --glass-highlight: rgb(255 255 255 / 0.40);
+  --glass-float-drop: rgb(0 0 0 / 0.35);
+
+  --nav-selected-bg: rgb(255 255 255 / 0.12);
+  --nav-selected-border: rgb(255 255 255 / 0.18);
+  --nav-selected-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+
+  --tab-pill-bg: rgb(255 255 255 / 0.13);
+  --tab-lens-rim: rgb(255 255 255 / 0.35);
+  --tab-lens-drop: rgb(0 0 0 / 0.45);
+}
+
+.glass {
+  background-color: var(--glass-bg);
+  background-image: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--glass-tint) var(--glass-mix), transparent),
+    transparent 60%
+  );
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid color-mix(in srgb, var(--glass-border) var(--glass-mix), transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, var(--glass-specular) var(--glass-mix), transparent),
+    inset 0 -1px 0 0 color-mix(in srgb, var(--glass-shade) var(--glass-mix), transparent),
+    0 10px 34px -18px color-mix(in srgb, var(--glass-drop) var(--glass-mix), transparent);
+}
+
+/* The heavier grade, for a pane that floats free of every edge rather than
+   sitting against one — today that is the header. Two things differ from
+   `.glass`, and both follow from what it overlaps: the base is more opaque
+   because body text scrolls underneath and has to stop being readable through
+   it, and the lit rim is a gradient sheen falling from the top edge rather than
+   a one-pixel bevel, because a card with four visible edges catches light
+   across its face, not just along a seam.
+
+   This one *is* inside `@layer components`, unlike everything else here, and
+   the reason is the `position: relative` its sheen needs. Author CSS outside a
+   layer beats `@layer utilities` outright, so an unlayered `position: relative`
+   would quietly defeat `sticky` and `fixed` on any element wearing this class —
+   a fixed bar dropping back into the flow, which is how it presents on a phone.
+   `:where()` costs the rule its specificity as a second line of defence.
+   → documentation/glass-components.md. */
+@layer components {
+  .glass-heavy {
+    background-color: var(--glass-bg-heavy);
+    background-image: linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--glass-tint) var(--glass-mix), transparent),
+      transparent 60%
+    );
+    backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(var(--glass-saturate));
+    border: 1px solid color-mix(in srgb, var(--glass-border-light) var(--glass-mix), transparent);
+    border-radius: var(--radius-sheet);
+    box-shadow: 0 8px 40px color-mix(in srgb, var(--glass-float-drop) var(--glass-mix), transparent);
+  }
+
+  /* The sheen. It paints *above* the pane, so anything inside a `.glass-heavy`
+     has to be raised over it — `relative z-10` on the content wrapper — or it
+     reads as a wash across the top of the card. `pointer-events: none` keeps it
+     from eating the taps it covers. */
+  .glass-heavy::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 40%);
+    mask-image: linear-gradient(180deg, black 0%, transparent 50%);
+    -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 50%);
+    opacity: calc(0.3 * var(--glass-strength));
+  }
+
+  :where(.glass-heavy) {
+    position: relative;
+  }
+}
+
+/* The far end of the slider, where there is no glass left.
+
+   Everything above already resolves to nothing there — `blur(0px)`,
+   `saturate(100%)`, colours mixed all the way to `transparent` — so this rule
+   changes no pixel. What it removes is the *work*: a `backdrop-filter` that
+   computes an identity is still a filter, and the browser still promotes the
+   pane to its own layer and recomposites what is behind it on every frame of
+   every scroll. At 100% transparency that is a full-screen readback for an
+   effect nobody can see.
+
+   Set from `lib/theme.ts` and again from `public/theme-boot.js`, on the same
+   element as `--glass-alpha`, because a value has to reach CSS as a selector
+   before CSS can drop a declaration for it — a custom property cannot switch one
+   off. Unlayered and two selectors deep, so it beats `.glass-heavy` inside
+   `@layer components` without an `!important`; the accessibility fallbacks below
+   set `backdrop-filter: none` too, so there is nothing here for them to fight
+   over. */
+:root[data-glass="clear"] .glass,
+:root[data-glass="clear"] .glass-heavy {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Real lensing needs `backdrop-filter: url(#filter)` with an feDisplacementMap.
+   Chrome does it; **Safari does not**, and Safari on a phone is this app's
+   primary device — so the shipped effect is blur, saturation and the specular
+   rim, and the refraction is a progressive enhancement for the browsers that
+   can afford it. */
+@supports (backdrop-filter: url("#glass-refraction")) {
+  .glass-refract {
+    backdrop-filter: url("#glass-refraction") blur(var(--glass-blur))
+      saturate(var(--glass-saturate));
+  }
+}
+
+/* Continuous curvature where the browser has it, a large radius everywhere
+   else. The fallback is not a downgrade worth guarding against. */
+@supports (corner-shape: squircle) {
+  .glass,
+  .glass-heavy,
+  .squircle {
+    corner-shape: squircle;
+  }
+}
+
+/* Translucency is exactly what makes text unreadable for some people, and this
+   setting exists to say so. Not politeness — the fallback is part of shipping
+   the effect at all. `prefers-contrast: more` gets the same treatment, with the
+   hairline promoted to a border you can actually see. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-heavy {
+    background-color: var(--glass-solid);
+    background-image: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .glass-heavy::before {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass,
+  .glass-heavy {
+    background-color: var(--glass-solid);
+    background-image: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: var(--color-ink-500);
+  }
+
+  .glass-heavy::before {
+    display: none;
+  }
+}
+
+/* Firefox before 103 and any engine with the feature switched off. Without
+   this the header is a 62%-opaque white slab with the page legible through it. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glass-heavy {
+    background-color: var(--glass-solid);
+    background-image: none;
+  }
+}
+
+/* The wordmark, the primary button, the deck's ★. */
+.brand-gradient {
+  background-image: linear-gradient(120deg, var(--color-flame-from), var(--color-flame-to));
+}
+
+/* The section colours, clipped to the glyphs. The wordmark wears the first; both
+   are worn by the selected tab's label, whose icon takes the same ramp through
+   an SVG gradient of its own — `NavGradients` in `Layout.tsx`, because a stroke
+   cannot read a CSS background.
+
+   Teal has no `.track-gradient` beside flame's any more. Nothing wore it once
+   the selected tab stopped being a filled pill, and a fill nobody uses is a fill
+   somebody re-adds by accident. The same 120° as the flame either way, so the
+   two catch the light from the same direction wherever they meet. */
+.brand-text {
+  background-image: linear-gradient(120deg, var(--color-flame-from), var(--color-flame-to));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.track-text {
+  background-image: linear-gradient(120deg, var(--color-track-from), var(--color-track-to));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* The selected tab — Jobs or Tracker, in the header's segmented control and in
+   the phone's dock alike.
+
+   **A halo, not a fill.** The pill used to be the section's gradient with white
+   text on it, which is the heaviest object in either bar and states "button"
+   where it means "you are here". This is a sibling app's shape instead: a raised
+   translucent surface, and the colour left to a soft glow around it and to the
+   icon and label themselves, which wear the section's gradient rather than
+   white. The surface is neutral in both themes, so what is coloured is the
+   *content* — the thing you are actually reading — and the halo is what makes it
+   read as lit rather than as tinted.
+
+   The glow is the widest thing in the row, so it is drawn with a negative spread
+   to keep it inside the bar rather than smearing along the pane's edge.
+
+   It colours a border rather than declaring one: both states carry
+   `border-transparent` from `Layout.tsx`, so selecting a tab cannot change its
+   size and shove its neighbour along the row. */
+.nav-selected {
+  background: var(--nav-selected-bg);
+  border-color: var(--nav-selected-border);
+  box-shadow: var(--nav-selected-shadow), 0 0 18px -2px var(--nav-glow);
+}
+
+/* The corner's two links — Account and Settings — take the same halo, on hover
+   and on the page itself.
+
+   They differ from a tab in what they say when nothing is happening: a tab that
+   is not selected is *not where you are*, so it goes quiet, while these two are
+   always available and always drawn in the brand ramp. That gradient is the
+   whole of them on a phone, where there is no pointer to reveal anything, and
+   `:focus-visible` is here so a keyboard reaches the same state a mouse does.
+
+   `[aria-current="page"]` rather than a class: `NavLink` already sets it, and
+   the CSS may as well read the attribute the accessibility tree reads.
+
+   The border is declared transparent on the element itself (`border-transparent`
+   in `Layout.tsx`) — the same reason the tabs carry one. A rule that *adds* a
+   1px border grows the box by two, and a corner button that swells under the
+   pointer, or a segment that shoves its neighbour aside when you select it, is a
+   layout shift dressed up as a hover state. */
+.nav-lit:hover,
+.nav-lit:focus-visible,
+.nav-lit[aria-current="page"] {
+  background: var(--nav-selected-bg);
+  border-color: var(--nav-selected-border);
+  box-shadow: var(--nav-selected-shadow), 0 0 18px -2px var(--nav-glow);
+}
+
+.nav-flame {
+  --nav-glow: rgb(253 38 125 / 0.35);
+}
+
+.nav-track {
+  --nav-glow: rgb(20 184 166 / 0.35);
+}
+
+/* Long agent output and JSON payloads must scroll inside their own box
+   rather than pushing the page sideways. */
+pre {
+  overflow-x: auto;
+}
+
+/* Safari zooms the page in when a focused field is under 16px, and then leaves
+   it zoomed. Every form here is 14px by design on a laptop, so raise it on the
+   small screens where the zoom would trigger rather than everywhere. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* WebKit draws its own clear cross inside a `type="search"`, and no other engine
+   does. The Tracker's search field carries a Clear button of its own so that
+   every browser has one — on Safari that would be two, a pixel apart. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* The grey flash a tap leaves on Android reads as a rendering glitch on
+   elements this app styles its own pressed state for. */
+a,
+button,
+label,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The shell is edge-to-edge (viewport-fit=cover in index.html), so the bars that
+   sit against an edge add the inset back themselves. All four are plain classes
+   rather than Tailwind utilities on purpose: each one sets a padding that a
+   utility on the same element also sets, and unlayered CSS wins that outright
+   instead of depending on how the two sort inside the utilities layer.
+
+   Every value is zero on a screen without a notch, which is why nothing outside
+   the shell has to know they exist. */
+
+/* One horizontal gutter for the whole shell: the normal padding, or the inset a
+   landscape notch needs, whichever is larger. */
+.gutter {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+:root {
+  /* Breathing room above the content row, below whatever the phone keeps up
+     there. NOT optional, and not a taste: the safe-area inset clears the
+     *status bar*, and it does not clear the **Dynamic Island**, which is an
+     opaque overlay hanging lower than the text it replaced. On a 59pt inset the
+     bare inset put the row 12pt under the Island — reported from a device as
+     crowded, twice, in a sibling app, where 8pt of added clearance was still
+     called too tight. 16pt is the number that was accepted. */
+  --header-clearance: 1rem;
+
+  /* The header's one vertical inset, named because the two header states pass
+     it back and forth and it has to be the *same* number on both sides of the
+     trade or the shell changes height mid-scroll. The notch plus that
+     breathing room; on a screen with no inset, the clearance is the whole
+     float. Keeping it to ONE term is what makes the merged slab exactly as tall
+     as the strip it covers, with no second value to keep in step — and it is
+     why there is no media query here: there is none for the *value* of a
+     safe-area inset, so do not go looking for one. */
+  --header-float: calc(env(safe-area-inset-top) + var(--header-clearance));
+  /* How long the slab takes to become the capsule. Long enough to read as one
+     shape changing rather than two shapes swapping, short enough that a flick
+     does not outrun it. `prefers-reduced-motion` collapses it at the bottom of
+     this file, along with every other transition. */
+  --header-morph: 260ms;
+}
+
+/* In a browser *tab* the page already sits below the browser's own chrome, so
+   the Island is never over the content and that clearance is 12pt of dead space
+   at the top of every screen. Only the clearance moves — never the
+   `env(safe-area-inset-top)` term — so whatever the engine reports for the
+   inset is still respected in full and this rule cannot push the row under a
+   notch, whatever it reports. The attribute is stamped only on a POSITIVE
+   browser match (theme-boot.js), so anything unprovable keeps the installed
+   app's spacing. */
+:root[data-display="browser"] {
+  --header-clearance: 0.25rem;
+}
+
+/* The header floats free of all four edges, so it is docked the same way the
+   tab bar is: the two are the same kind of object at opposite ends of the
+   screen, and they float on the same 0.75rem inset.
+
+   It is two elements, not one. `.header-dock` is the sticky box, full-bleed and
+   painting nothing; `.header-pane` is the glass card inside it, and the float
+   is the dock's padding rather than the card's margin. That split is what lets
+   the phone merge the card into the top edge without the page below it moving:
+   the two states trade the same inset between the dock's padding and the pane's,
+   so the shell's total height is identical in both. Only the *top* is ever
+   traded — the horizontal padding below is the card's width in both states, on
+   a phone as much as anywhere. See below.
+
+   The horizontal padding is one `max()` doing three jobs at once, which is why
+   it is here and not three utilities on the element. `0.75rem` is the float;
+   `env(safe-area-inset-*)` takes over on a phone held sideways, where the notch
+   eats ~59px of one edge and the two insets are not equal — so `margin-inline:
+   auto` could not be used, it would centre the card and leave one end under the
+   notch. `(100% - 72rem) / 2` takes over on a wide monitor, where it is what
+   `mx-auto max-w-6xl` would have computed: the card then lines up with the
+   content column instead of stretching to a 2560px bar over a 1152px page.
+   Whichever of the three is largest wins, per edge, at every width.
+
+   `top: 0` is now the whole of the sticky offset, because the float is padding
+   inside the sticky box rather than a margin outside it. The old pairing —
+   `top` and `margin-top` carrying the same value, since a sticky element is
+   placed by its margin until it sticks and by `top` afterwards — is gone with
+   the margin, and with it the way it broke when only one of the two changed.
+
+   `pointer-events` is the price of a full-bleed box: the dock's padding is
+   transparent but it is still the header's own box, and it would otherwise
+   swallow every tap in the strip above the card and down both sides of it —
+   which on a wide monitor is most of the top of the page. The card takes its
+   taps back. */
+.header-dock {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  padding-top: var(--header-float);
+  padding-left: max(0.75rem, env(safe-area-inset-left), (100% - 72rem) / 2);
+  padding-right: max(0.75rem, env(safe-area-inset-right), (100% - 72rem) / 2);
+  pointer-events: none;
+  transition: padding-top var(--header-morph) ease;
+}
+
+.header-pane {
+  pointer-events: auto;
+  transition:
+    padding-top var(--header-morph) ease,
+    border-radius var(--header-morph) ease,
+    border-color var(--header-morph) ease;
+}
+
+/* On a phone, at the top of the page, the header grows *upward* into the top of
+   the screen: its top edge becomes the screen's, the status bar rides on the
+   glass, and its top corners square off while the bottom two stay round. Scroll,
+   and it detaches into the capsule it is everywhere else. Two shapes, because
+   they say two different things — nothing has passed underneath yet, versus
+   something is passing underneath now — and on a 375px screen the second is
+   worth the 8px the first gives back.
+
+   **Only the top merges.** The card keeps the same 0.75rem down each side in
+   both states, so the shape you are looking at is the same object growing a
+   third edge rather than a different, wider card swapping in — and the two
+   floating bars stay a pair, because the tab bar's sides never move either. It
+   also means the width never animates, which is the one thing here that would
+   have made a `backdrop-filter` pane flicker mid-morph on Safari.
+
+   The trade is exact: `--header-float` moves from the dock's padding to the
+   pane's, so the row lands on the same pixel in both states and the shell's
+   height never changes. That is not cosmetic. The header is in the flow, so a
+   height that changed with scroll position would shove every pixel of `main`
+   up or down mid-scroll — the content jumping under your thumb as the header
+   settled.
+
+   The same swap is why the merged slab is as tall as the strip it covers: on a
+   phone with a notch, `--header-float` is that inset plus `--header-clearance`,
+   so the glass fills the status bar's strip and the breathing room below it. On
+   a phone without one it is the clearance alone, and the slab keeps that much
+   glass above the row instead. Both need the web view to own the top of the
+   screen — `apple-mobile-web-app-status-bar-style: black-translucent` in
+   `index.html`, without which the inset reports 0 and this merges into the top
+   of a content area rather than the top of the screen.
+
+   The top border goes transparent rather than to zero width: a hairline is a lit
+   edge, and that one is now against the screen's own edge with nothing to be lit
+   against — but dropping the colour keeps the box the same size, which dropping
+   the width would not. The two sides keep theirs; they still have page beside
+   them. The background paints under all three either way
+   (`background-clip: border-box`), so the glass still reaches the top.
+
+   Below `sm` only, and deliberately: above it the header is one of several
+   things on a wide page rather than the top of the screen, and there is no top
+   edge for it to merge with. */
+@media (max-width: 639px) {
+  .header-dock[data-merged] {
+    padding-top: 0;
+  }
+
+  /* The merged slab is a plain rectangle flush with the top of the screen: its
+     top edge is square, the safe-area padding sits inside the pane, and the
+     status bar rides on the same translucent glass as the row.
+
+     Nothing here answers a rubber-band, because there is no longer one to
+     answer: `overscroll-behavior-y: none` at the top of this file stops the page
+     dragging past its own top at all, so this rectangle cannot be lifted off the
+     bezel. Five earlier attempts at holding, filling or hiding the strip that
+     used to open above it are in `documentation/decisions.md` § *Dragging past
+     the top is not ours to chase*, and all five are gone. */
+  .header-dock[data-merged] .header-pane {
+    padding-top: var(--header-float);
+    border-top-color: transparent;
+    border-radius: 0 0 var(--radius-sheet) var(--radius-sheet);
+  }
+}
+
+/* The tab bar does not sit against the bottom edge any more — it floats above
+   the content as a piece of glass, which is what makes it read as a layer
+   rather than as chrome welded to the frame. Docking it is three insets that
+   have to move together, so they live here rather than as utilities on the
+   element: the horizontal ones clear a landscape notch, the vertical one clears
+   the home indicator. */
+.tabbar-dock {
+  position: fixed;
+  z-index: 20;
+  left: max(0.75rem, env(safe-area-inset-left));
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+/* The phone tab bar itself, drawn after iOS 26's: a capsule sized to its tabs,
+   one pill that slides between them, and a lens that pill lifts into under a
+   finger. `TabBar.tsx` explains the mechanism; these are its measurements.
+
+   `--lens-pos` is the tab index the pill sits over. It is *not* animated
+   itself: it only sets where `translate` should end up, and `translate` is what
+   transitions. The first cut registered it with `@property` and transitioned
+   the number, which lagged on a phone (2026-09-26): a custom property animates
+   on the main thread, restyling and re-laying-out the bar every frame, and the
+   tab change it animates is also the moment the main thread mounts the new
+   page. `translate` runs on the compositor, so the pill keeps moving while the
+   page renders. The row copy inside the pill counter-translates by the same
+   distance with the same curve, which keeps the two aligned in flight; both
+   distances are in `--tab-w` rather than percentages, because the pill and the
+   copy are different widths and a percentage is of each one's own. */
+.tabbar-row {
+  --tab-w: 7.5rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--tab-count), var(--tab-w));
+  padding: 0.25rem;
+  /* The bar is a slider now: a drag across it must move the lens, not scroll
+     the page, select a label or raise the link's long-press sheet. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* A capsule, not a squircle. `.glass` asks for `corner-shape: squircle`, which
+   turns a full radius into a superellipse — a rounded box rather than the pill
+   Apple's bar is. Two classes deep so it outranks that rule wherever it sorts. */
+.tabbar.glass {
+  corner-shape: round;
+}
+
+/* 54px + 2 × 4px of padding + the pane's two hairlines = the same 4rem the old
+   dock was, so `.pb-tabbar` and `.fab-dock` did not have to move. Full radius
+   inside a full-radius capsule is concentric by construction. */
+.tabbar-cell {
+  min-height: 54px;
+}
+
+/* The real row is ink only; the tint is the copy inside the pill. Under a
+   resting pill the ink face fades out so it does not fringe the tinted one
+   drawn over it, and fades back as the pill leaves. Opacity only, so it stays on
+   the compositor with the slide. */
+.tabbar-row > a > * {
+  transition: opacity 0.35s ease;
+}
+
+.tabbar-row > a[data-covered] > * {
+  opacity: 0;
+}
+
+.tabbar-lens {
+  --lens-slide: 0.85s cubic-bezier(0.3, 1.3, 0.5, 1);
+  position: absolute;
+  z-index: 1;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: var(--tab-w);
+  border-radius: 9999px;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--tab-pill-bg);
+  /* `translate` and `scale`, never `transform`: the slide and the lift are
+     separate transitions with separate curves, and one property would make
+     every lift restart the slide. Both stay on the compositor. */
+  translate: calc(var(--lens-pos) * var(--tab-w)) 0;
+  scale: 1;
+  will-change: translate, scale;
+  transition:
+    translate var(--lens-slide),
+    scale 0.4s cubic-bezier(0.3, 1.5, 0.5, 1),
+    background-color 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.2s ease;
+}
+
+/* Lifted: larger than the bar it belongs to, so it overhangs the capsule top
+   and bottom the way Apple's does. A press lifts it where it is; a drag's
+   first move glides it to the finger on this short curve (`CATCH_UP_MS` in
+   `TabBar.tsx`), and from then on the lens sits under the finger with no
+   transition at all — any easing there is a lens that trails the finger. The
+   spring is for letting go, and a tap is all spring. */
+.tabbar-lens[data-lifted] {
+  --lens-slide: 0.18s ease-out;
+  scale: 1.32;
+  background: var(--tab-lens-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--tab-lens-rim),
+    inset 0 1.5px 1px -0.5px rgb(255 255 255 / 0.9),
+    inset 3px 0 4px -3px rgb(255 120 84 / 0.45),
+    inset -3px 0 4px -3px rgb(2 132 199 / 0.45),
+    0 10px 24px -8px var(--tab-lens-drop);
+}
+
+.tabbar-lens[data-dragging] {
+  --lens-slide: 0s linear;
+}
+
+/* A route that is neither tab — an application, Account, Settings. */
+.tabbar-lens[data-hidden]:not([data-lifted]) {
+  opacity: 0;
+}
+
+/* The row again, in every tab's selected colours, laid out exactly over the
+   real one: offset by the pill's own inset, as wide as the whole row, and
+   moved back by exactly as far as the pill has moved forward. `--lens-slide`
+   is inherited from the pill, so the two always run the same curve. */
+.tabbar-lens-row {
+  position: absolute;
+  top: -0.25rem;
+  left: -0.25rem;
+  width: calc(var(--tab-count) * var(--tab-w) + 0.5rem);
+  height: calc(100% + 0.5rem);
+  display: grid;
+  grid-template-columns: repeat(var(--tab-count), var(--tab-w));
+  padding: 0.25rem;
+  translate: calc(var(--lens-pos) * var(--tab-w) * -1) 0;
+  will-change: translate;
+  transition: translate var(--lens-slide);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .tabbar-lens[data-lifted] {
+    background: var(--glass-solid);
+  }
+}
+
+/* The floating "+" rides directly above it, on the same insets, so the two
+   never overlap however deep the home indicator is. */
+.fab-dock {
+  position: fixed;
+  z-index: 25;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+/* Room for both, on the screens where the two main buttons are not in the
+   header: the bar is 4.25rem tall, floats 0.75rem off the edge, and wants
+   0.75rem of air above it before content starts. */
+.pb-tabbar {
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  .gutter {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+
+  .pb-tabbar {
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

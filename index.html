@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- index.html: app/frontend/index.html with the demo entry, title and
+     description swapped. Keep the rest identical — it is what makes the demo a
+     phone app (viewport, status bar, theme boot) the way the real one is. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover lets the layout run under the notch and the home
+         indicator; the safe-area insets in index.css put the content back. No
+         maximum-scale or user-scalable: pinch-zoom stays available. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- The browser chrome: the Android status bar and Safari's toolbar tint.
+         One tag with no `media`, because the theme is no longer a question the
+         browser can answer on its own — Settings → Appearance can override the
+         device, and a media-scoped pair would then paint the chrome the colour
+         of a theme the app is not wearing. The script below sets it, and
+         `lib/theme.ts` sets it again on every change. -->
+    <meta name="theme-color" content="#fafafa" />
+    <!-- Stamp the theme before the first paint: `<html data-theme>` is what
+         index.css keys every token block on, and the app's own module is
+         deferred past the parse, so without this a returning user who chose
+         dark gets a white frame and then a flip.
+         A file rather than an inline script because nginx serves
+         `script-src 'self'` with no `'unsafe-inline'` — inline works in dev and
+         is blocked in production. Classic, not `type="module"`: it has to
+         block. -->
+    <script src="/theme-boot.js"></script>
+    <meta name="description" content="A live demo of Tinternship: swipe through internships, apply with agents, and keep track of what happened. Every agent answer is pre-written; your changes stay in your browser." />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- Three icons cover every browser worth serving: the .ico for the ones
+         that want a bitmap at tab size (and for everything that just requests
+         /favicon.ico without reading this file), the SVG for the ones that
+         would rather scale a vector, and the touch icon for iOS, which ignores
+         the manifest. All of them are drawn by scripts/make-icons.py. -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Tinternship" />
+    <!-- `black-translucent`, and the morphing header depends on it. It is what
+         hands the whole screen to the web view, notch included, so
+         `env(safe-area-inset-top)` reports the real inset and the merged slab
+         reaches the *physical* top bezel with the status bar riding on its
+         glass. With `default` — what this said until 2026-09-11 — iOS keeps the
+         status bar as an opaque band of its own and starts the page underneath
+         it: the inset reports 0, so the slab merged into the top of a content
+         area that was not the top of the screen, and the app visibly stopped
+         short of the edge. → documentation/decisions.md -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <title>Tinternship — demo</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/demo/src/main.demo.tsx"></script>
+  </body>
+</html>

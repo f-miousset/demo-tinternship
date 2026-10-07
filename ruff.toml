@@ -1,0 +1,19 @@
+# The demo's own Python: the seed builder and the fictional world it reads.
+# Same rules as app/backend (its pyproject's [tool.ruff]), run by `make lint`.
+line-length = 110
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[lint.isort]
+# `world` is this repo's own module, imported off a sys.path entry the builder
+# adds; the backend package is the app's.
+known-first-party = ["world", "tinternship_backend"]
+
+[lint.per-file-ignores]
+# Prose, as in the app's own exemption for its prompt and schema files: every
+# posting, letter sentence and résumé line here is read by a person, and
+# reflowing it to a line limit only makes it harder to read and to edit.
+"seed/world.py" = ["E501"]
+"scripts/build_seed.py" = ["E501", "E402"]

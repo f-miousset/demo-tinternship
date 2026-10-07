@@ -1,0 +1,89 @@
+[project]
+name = "tinternship-backend"
+version = "1.0.0"
+description = "Multi-agent backend that finds internships and tailors applications, with full decision tracing."
+authors = [
+    { name = "Tinternship contributors" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    # `google-adk` WITHOUT its `extensions` extra, plus the one member of that
+    # bundle this app actually uses: `litellm`, which `adk.models.lite_llm`
+    # needs for a local Ollama model and `observability/pricing.py` reads
+    # `model_cost` from. The extra also carries nltk, langgraph, llama-index,
+    # kubernetes and eleven others nothing here imports — and their CVEs.
+    # Do not restore it; add the member you need. documentation/testing.md
+    # #an-alert-with-no-patched-version-is-answered-by-dropping-the-dependency
+    "google-adk>=2.8.0",
+    "litellm>=1.98.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.15.0",
+    "python-multipart>=0.0.32",
+    "sqlmodel>=0.0.39",
+    "uvicorn[standard]>=0.52.1",
+    "aiosqlite>=0.22.1",
+    "jinja2>=3.1.6",
+    "pypdf>=6.1.1",
+    "python-docx>=1.2.0",
+    "opentelemetry-sdk>=1.30.0",
+    "playwright>=1.62.0",
+]
+
+[project.scripts]
+tinternship-backend = "tinternship_backend:main"
+
+[dependency-groups]
+dev = [
+    # Not the app's HTTP client — that is `httpx` up in [project.dependencies],
+    # and it stays there. This is the one `starlette.testclient` wants.
+    #
+    # Starlette 1.6 moved TestClient onto httpx2 (pydantic's continuation of
+    # httpx, a different distribution with a different top-level module) and
+    # kept httpx only as a deprecated fallback that warns on import. Two clients
+    # in the venv is what upstream itself does — starlette[full] depends on both
+    # — and they do not collide: separate module names, separate transports
+    # (httpcore vs httpcore2). Nothing ships to production either way, because
+    # deploy/Dockerfile.api syncs with --no-dev.
+    "httpx2>=2.12.0",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.0",
+    "ruff>=0.9.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    # StarletteDeprecationWarning subclasses UserWarning, not DeprecationWarning
+    # — deliberately, so the line above cannot hide it. Erroring on it is what
+    # keeps the httpx2 dev dependency from being silently droppable: without
+    # httpx2 installed, TestClient falls back to httpx and warns, and that
+    # warning would otherwise scroll past 510 green dots until the release that
+    # removes the fallback turns it into a RuntimeError on a Renovate PR.
+    #
+    # It also means the *next* Starlette deprecation fails the suite at
+    # deprecation time, when there is a documented migration, rather than at
+    # removal time, when there is not.
+    "error::starlette.exceptions.StarletteDeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# These files are mostly prose the model reads. Reflowing a field description or
+# a rubric criterion to satisfy a line limit only makes it harder to read.
+"src/tinternship_backend/agents/schemas.py" = ["E501"]
+"src/tinternship_backend/agents/rubrics.py" = ["E501"]
+"src/tinternship_backend/agents/prompts.py" = ["E501"]

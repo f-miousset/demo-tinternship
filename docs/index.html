@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <script src="theme.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Run Tinternship yourself</title>
+  <meta name="description" content="Set up Tinternship — a team of AI agents that finds internships and fills in your own CV and cover letter — on your own machine with just a Gemini API key." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="#top"><img src="favicon.svg" alt="" /> Tinternship</a>
+    <div class="switch" role="group" aria-label="Theme">
+      <button type="button" data-set-theme="system">Auto</button>
+      <button type="button" data-set-theme="light">Light</button>
+      <button type="button" data-set-theme="dark">Dark</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1>Run <span class="flame">Tinternship</span> yourself</h1>
+      <p class="lead">
+        A team of AI agents that finds internships worth applying to, scores each one against what you want, and fills in
+        <em>your own</em> CV and cover letter for it — every decision traced and audited. You triage what they find by swiping a deck.
+      </p>
+      <div class="actions">
+        <a class="button primary" href="https://demo-tinternship.fmiousset.com">Try the demo</a>
+        <a class="button" href="https://github.com/f-miousset/demo-tinternship">Source code</a>
+        <a class="button" href="#setup">Set it up</a>
+      </div>
+      <p class="note">
+        The demo calls no AI: every agent answer in it was written in advance, and your changes stay in your browser.
+        This page is about the real thing — the same app, with its agents running on your own API key.
+      </p>
+    </section>
+
+    <h2 id="what">What you get</h2>
+    <div class="card">
+      <ul>
+        <li><strong>A search that knows what you want.</strong> An Interrogator interviews you once; an HR Expert researches how your kind of internship is actually hired, with sources; the Investigator searches with both.</li>
+        <li><strong>Your documents, not generated ones.</strong> You upload the CV and letter you wrote, with <code>[blanks]</code> where something should change per application. A run fills only the blanks — your layout, fonts and wording survive, and the page stays one page, measured.</li>
+        <li><strong>A Critic on every document.</strong> Each résumé, letter, interview brief and contact list is scored against a rubric; below the bar it is sent back for revision automatically.</li>
+        <li><strong>Every link proved.</strong> A posting's link is fetched and checked before it is saved. No proof, no link.</li>
+        <li><strong>Everything traced.</strong> Every agent, model call and tool call is logged with tokens, latency and cost on the Traces page.</li>
+        <li><strong>A tracker that chases for you.</strong> Applications go quiet; after 14 days it drafts the follow-up e-mail, and when you reach an interview round it writes the brief.</li>
+      </ul>
+    </div>
+
+    <h2 id="setup">Set it up — about ten minutes</h2>
+    <p class="muted">You need <strong>Docker</strong> (Docker Desktop, or Docker Engine with Compose) and a <strong>Gemini API key</strong>. Nothing else.</p>
+
+    <ol class="steps">
+      <li>
+        <h3>Get a Gemini API key</h3>
+        <p>
+          Create one at <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>. Alternatively a Google Cloud
+          (Vertex AI) API key works — set <code>GOOGLE_GENAI_USE_VERTEXAI=TRUE</code> next to it, and Cloud credits pay for it.
+        </p>
+      </li>
+      <li>
+        <h3>Get the code</h3>
+<pre><code>git clone https://github.com/f-miousset/demo-tinternship.git
+cd demo-tinternship/selfhost</code></pre>
+        <p class="muted">The real app is in <code>app/</code>; <code>selfhost/</code> holds the three-container setup that runs it.</p>
+      </li>
+      <li>
+        <h3>Put your key in <code>.env</code></h3>
+<pre><code>cp ../app/.env.example .env</code></pre>
+        <p>Open <code>.env</code> and fill in the one required line:</p>
+<pre><code>GOOGLE_API_KEY=your-key-here</code></pre>
+        <p class="muted">Every other setting is optional and explained in the file. The models, the quality threshold and the follow-up delay are changed later from the app's Settings page.</p>
+      </li>
+      <li>
+        <h3>Start it</h3>
+<pre><code>docker compose up -d --build</code></pre>
+        <p>The first build takes a few minutes (it installs a headless Chromium for checking job links). Then open <a href="http://localhost:8080">http://localhost:8080</a>.</p>
+        <p class="muted">Port 8080 taken? <code>PORT=8090 docker compose up -d</code>.</p>
+      </li>
+      <li>
+        <h3>Set up your account, once</h3>
+        <p>The app opens on <strong>Account</strong> and keeps Jobs and Tracker closed until this is done:</p>
+        <ul>
+          <li><strong>Your four documents</strong> — your CV and your cover letter, in English and in French, as <code>.docx</code>. Leave <code>[a_name_in_brackets]</code> wherever something should be decided per application: <code>[target_role]</code>, <code>[list_of_relevant_courses]</code>, <code>[cover_letter_opening_paragraph]</code>… The name is the instruction. Want to try it first? <code>selfhost/example-documents/</code> has a fictional candidate's four.</li>
+          <li><strong>Two lists</strong> — your courses and your skills, each in both languages. The coursework and skills blanks are filled by picking from them, never by inventing.</li>
+          <li><strong>The interview</strong> — answer the Interrogator's questions. When it has enough it writes your search brief, and the HR Expert researches a hiring playbook from it.</li>
+        </ul>
+      </li>
+      <li>
+        <h3>Search, swipe, apply</h3>
+        <p>On <strong>Jobs</strong>, run the Investigator (or tell it what to focus on), swipe right on what you want, and press Generate on an application to get your filled-in CV and letter as <code>.docx</code>.</p>
+      </li>
+    </ol>
+
+    <h2 id="cost">What it costs</h2>
+    <p>
+      Only your own API usage. A search run is typically a few cents, a résumé-and-letter run about the same; the Traces page shows the
+      cost of every run as it happens. You can move the reasoning and critic tiers to local models with
+      <a href="https://ollama.com">Ollama</a> (Settings → models, and <code>OLLAMA_BASE_URL=http://host.docker.internal:11434</code> in
+      <code>.env</code>); grounded web search stays on Gemini.
+    </p>
+
+    <h2 id="optional">Optional extras</h2>
+    <table>
+      <thead><tr><th>What</th><th>Why</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td>Adzuna</td><td>Structured postings with dates and salary bands; better recall than web search alone.</td><td>Free key at <a href="https://developer.adzuna.com/">developer.adzuna.com</a>; set <code>ADZUNA_APP_ID</code> and <code>ADZUNA_APP_KEY</code>.</td></tr>
+        <tr><td>Local models</td><td>Run the reasoning and critic tiers on your machine.</td><td>Install Ollama, pull a model, pick it in Settings.</td></tr>
+        <tr><td>No browser checks</td><td>A smaller footprint, at the cost of some links staying "unchecked".</td><td><code>BROWSER_VERIFY=false</code> in <code>.env</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="data">Your data, and who can see it</h2>
+    <ul>
+      <li>Everything lives in <code>selfhost/data/</code>: three SQLite files and your documents. Back up that folder; delete it to start over. The app's Settings page also deletes by category.</li>
+      <li>The only outside services it talks to are the ones you configure: the Gemini API (or your local Ollama), and Adzuna if you add it.</li>
+      <li><strong>There is no login.</strong> It is a single-user app and trusts whoever can reach it, so the compose file binds it to <code>127.0.0.1</code> — this machine only. To use it from your phone, put an authenticating reverse proxy in front of it; never just open the port.</li>
+    </ul>
+
+    <h2 id="update">Updating</h2>
+<pre><code>git pull
+docker compose up -d --build</code></pre>
+    <p class="muted">Your data is untouched; the app migrates its own database on start.</p>
+
+    <h2 id="dev">Without Docker</h2>
+    <p>For development: Python 3.14 with <a href="https://docs.astral.sh/uv/">uv</a>, and Node 24.</p>
+<pre><code>cd app
+cp .env.example .env     # add GOOGLE_API_KEY
+make install
+make dev                 # API on :8000, UI on http://localhost:5173
+make test                # the offline test suite — no key needed</code></pre>
+
+    <h2 id="how">How it is built</h2>
+    <p>
+      Google ADK agents on Gemini, FastAPI and SQLite behind a Vite/React PWA. Agents produce and Python persists: no agent saves its
+      own work, and every promise the UI makes — counts, ordering, one page, the output language, the quality bar — is enforced in
+      code rather than asked of a prompt. Read the agents in <code>app/backend/src/tinternship_backend/agents/</code>, the rubrics
+      in <code>agents/rubrics.py</code>, and the prompts in <code>agents/prompts.py</code>.
+    </p>
+
+    <footer>
+      MIT licensed · <a href="https://github.com/f-miousset/demo-tinternship">github.com/f-miousset/demo-tinternship</a> ·
+      the demo's candidate and companies are fictional.
+    </footer>
+  </main>
+</body>
+</html>

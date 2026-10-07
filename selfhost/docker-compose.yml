@@ -1,0 +1,49 @@
+# The real Tinternship, on your own machine — not the demo.
+#
+#   cp ../app/.env.example .env      # then put your GOOGLE_API_KEY in it
+#   docker compose up -d --build
+#   open http://localhost:8080
+#
+# Three containers: the API (FastAPI + the agents), the web UI (the static
+# build), and a small gateway that puts them on one origin — the UI calls
+# /api relative to itself, which is the whole reason it needs one. Your data
+# (three SQLite files and your uploaded documents) lives in ./data, next to
+# this file: back that directory up, and nothing else.
+#
+# It has NO login. It is a single-user app, and it trusts whoever can reach
+# it: the port is bound to 127.0.0.1 so only this machine can. To reach it
+# from elsewhere, put an authenticating proxy in front — never just open the
+# port. Full guide: https://f-miousset.github.io/demo-tinternship/
+services:
+  api:
+    build:
+      context: ../app
+      dockerfile: deploy/Dockerfile.api
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      FRONTEND_ORIGIN: http://localhost:${PORT:-8080}
+    volumes:
+      - ./data:/app/data
+    # Lets OLLAMA_BASE_URL=http://host.docker.internal:11434 reach an Ollama
+    # running on this machine, if you use local models. Harmless otherwise.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../app
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.31-alpine
+    volumes:
+      - ./gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:${PORT:-8080}:80"
+    depends_on:
+      - api
+      - web
+    restart: unless-stopped

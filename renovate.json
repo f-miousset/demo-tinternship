@@ -1,0 +1,89 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "description": [
+    "Renovate opens dependency PRs; .github/workflows/ci.yml verifies them (actionlint, shellcheck, the privacy check, lockfile drift, lint at --max-warnings 0, tsc, Vitest, the build and its assertions, the seed rebuild, the snapshot's own tests, and a smoke of the real image). Most bumps then merge themselves; the exclusions below each carry their reason. → documentation/verification.md",
+    "app/ is ignored: it is a copy of the private repository at a tag, refreshed only by scripts/sync-from-tinternship.sh. A bump there would make the published code differ from the code it claims to be, and the next sync would silently undo it. The private repository has its own Renovate.",
+    "prCreation is `immediate`: ci.yml runs on push to main and on pull_request only, so a renovate/* branch has no checks of its own for `not-pending` to wait on. Automerge still waits for the gate to go green.",
+    "No top-level `schedule`: minimumReleaseAge is the actual safety property, and prHourlyLimit caps the flow."
+  ],
+  "dependencyDashboard": true,
+  "timezone": "Etc/UTC",
+  "labels": [
+    "dependencies"
+  ],
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "prCreation": "immediate",
+  "rebaseWhen": "behind-base-branch",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+  "vulnerabilityAlerts": {
+    "description": "A known-exploitable version is the one case where waiting is worse than bumping. Security fixes skip the release-age hold, not the gate.",
+    "labels": [
+      "dependencies",
+      "security"
+    ],
+    "minimumReleaseAge": null
+  },
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "platformAutomerge": false,
+  "packageRules": [
+    {
+      "description": "Patches, pins and digests: a green run proves more than re-reading the diff would.",
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "devDependency minors: the toolchain only runs behind the gate, so a break is loud and local. Runtime deps wait for a human.",
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "Majors carry the breaking changes, and no job scores a UI's feel. Read the notes, merge one at a time.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "The gate does not merge changes to itself. The mail action is proven only by a message arriving, which no status check can confirm.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Base images (the demo's Dockerfile, the self-host gateway): the smoke job probes the demo's, but a new nginx or Node is still a human's call.",
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major"
+      ],
+      "automerge": false
+    }
+  ],
+  "ignorePaths": [
+    "app/**",
+    "**/node_modules/**"
+  ]
+}

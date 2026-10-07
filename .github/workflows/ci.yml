@@ -1,0 +1,269 @@
+# The verification gate: on every push to main and every pull request, so
+# Renovate's PRs are checked before they merge.
+#
+# Every job calls a Makefile target or a ci/ script rather than carrying its
+# own copy of the command. The one job a green run cannot prove — the failure
+# mail — checks its own credentials every run and sends one real message
+# whenever this file changes.
+#
+# RUNNERS: GitHub-hosted, deliberately and permanently. This repository is
+# public, and on a public repository anyone can open a pull request whose code
+# then runs on the runner. A self-hosted runner would hand that code the
+# machine. Do not introduce a runner variable here.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Workflow, shell, public surface
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      workflow-changed: ${{ steps.diff.outputs.changed }}
+      node-version: ${{ steps.node.outputs.version }}
+      python-version: ${{ steps.python.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Lint the workflow
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
+      - name: Shellcheck the scripts
+        run: shellcheck ci/*.sh scripts/*.sh
+
+      # The whole point of this repo is that it can be public. Enforce it on
+      # every commit rather than trusting a sweep done once.
+      - name: Nothing private or identifying
+        run: make public
+
+      # One source of truth for each runtime: the Dockerfile for Node, the
+      # snapshot's own .python-version for Python.
+      - name: Node's version, from the Dockerfile
+        id: node
+        run: |
+          version=$(sed -n 's|^FROM node:\([0-9][0-9]*\)[.-].*|\1|p' Dockerfile | sed -n '1p')
+          if [ -z "$version" ]; then
+            echo "::error::could not read a Node version out of the Dockerfile"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Python's version, from the snapshot
+        id: python
+        run: echo "version=$(cat app/backend/.python-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Did this change touch the workflow?
+        id: diff
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE=HEAD^
+          fi
+          if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "$BASE"...HEAD -- .github/workflows/ | grep -q . ; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  demo:
+    name: Demo — lint, typecheck, test, build, seed
+    runs-on: ubuntu-latest
+    needs: static
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ needs.static.outputs.node-version }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # Pinned to a full version: setup-uv publishes no floating major tags.
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: ${{ needs.static.outputs.python-version }}
+          enable-cache: true
+          cache-dependency-glob: app/backend/uv.lock
+
+      # `npm ci` refuses a lockfile that drifted from package.json — most of
+      # what verifies a Renovate lockfile PR.
+      - name: Install
+        run: make install
+
+      - name: Lint (--max-warnings 0)
+        run: make lint
+
+      - name: Typecheck
+        run: make typecheck
+
+      - name: Test
+        run: make test
+
+      - name: Build, and assert what it emits
+        run: make build
+
+      # The seed is generated and committed; this rebuilds it through the real
+      # backend and fails if the committed copy is not what it makes now.
+      - name: The committed seed is the one the builder makes
+        run: make seed-check
+
+  app:
+    name: The real app's own gate (app/)
+    runs-on: ubuntu-latest
+    needs: static
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ needs.static.outputs.node-version }}
+          cache: npm
+          cache-dependency-path: app/frontend/package-lock.json
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: ${{ needs.static.outputs.python-version }}
+          enable-cache: true
+          cache-dependency-glob: app/backend/uv.lock
+
+      - name: Install the backend from its lockfile
+        working-directory: app/backend
+        run: uv sync --locked
+
+      # Offline: the suite stubs every model call and every fetch. A snapshot
+      # that fails its own tests is never published as "the code you can run".
+      - name: Ruff, pytest, eslint, tsc, vitest
+        run: make app-test
+
+  container-smoke:
+    name: Build and smoke the image
+    runs-on: ubuntu-latest
+    needs: static
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image and prove it serves
+        run: make smoke
+
+  # The one job whose success proves nothing on its own: it only matters once
+  # something else has failed. So assert its credentials on every run, and send
+  # one real mail whenever this file changes.
+  notifier:
+    name: The failure mail can still reach someone
+    runs-on: ubuntu-latest
+    needs: static
+    if: always()
+    timeout-minutes: 5
+    steps:
+      - name: The credentials are still set
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          MAIL_TO: ${{ secrets.SMTP_TO }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          # A fork's PR gets no secrets by design; that is not a problem.
+          FROM_A_FORK: ${{ github.event.pull_request.head.repo.fork || false }}
+        run: |
+          if [ "$FROM_A_FORK" = "true" ]; then
+            echo "a fork PR gets no secrets — nothing to check"
+            exit 0
+          fi
+          if [ -z "$SMTP_HOST" ] || [ -z "$SMTP_PORT" ] || [ -z "$SMTP_USER" ] || [ -z "$SMTP_PASS" ] || [ -z "$MAIL_TO" ]; then
+            echo "::error::SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_TO are not all set — a red run would reach nobody."
+            exit 1
+          fi
+          case "$SMTP_USER$SMTP_PASS$MAIL_TO" in
+            *[[:space:]]*) echo "::error::a credential contains whitespace — re-set it without a trailing newline"; exit 1 ;;
+          esac
+          echo "the notifier has credentials"
+
+      - name: Prove it still delivers
+        if: needs.static.outputs.workflow-changed == 'true' && github.event.pull_request.head.repo.fork != true
+        uses: dawidd6/action-send-mail@v22
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          from: ${{ secrets.SMTP_USER }}
+          to: ${{ secrets.SMTP_TO }}
+          subject: "[ci] notifier self-test on ${{ github.repository }} @ ${{ github.head_ref || github.ref_name }}"
+          body: |
+            This is the self-test, not a failure.
+
+            ${{ github.repository }} changed .github/workflows/, so the mail step
+            sent one real message to prove the path still works.
+
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  gate:
+    name: All checks passed
+    needs: [static, demo, app, container-smoke, notifier]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # "skipped" and "cancelled" are failures here: a required job that did
+      # not run proved nothing.
+      - name: Every job must have succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::a required job reported '$result'"
+              exit 1
+            fi
+          done
+          echo "All green."
+
+  notify-failure:
+    name: Email on failure
+    needs: [static, demo, app, container-smoke, notifier]
+    if: failure() && github.event.pull_request.head.repo.fork != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: dawidd6/action-send-mail@v22
+        with:
+          server_address: ${{ secrets.SMTP_HOST }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+          from: ${{ secrets.SMTP_USER }}
+          to: ${{ secrets.SMTP_TO }}
+          subject: "[ci] ${{ github.repository }} failed on ${{ github.head_ref || github.ref_name }}"
+          body: |
+            ${{ github.workflow }} failed on ${{ github.head_ref || github.ref_name }} (triggered by ${{ github.actor }}).
+
+            Static/public: ${{ needs.static.result }}
+            Demo:          ${{ needs.demo.result }}
+            Real app:      ${{ needs.app.result }}
+            Image smoke:   ${{ needs.container-smoke.result }}
+            Notifier:      ${{ needs.notifier.result }}
+
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

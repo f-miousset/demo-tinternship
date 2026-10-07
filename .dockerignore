@@ -1,0 +1,14 @@
+# The Dockerfile copies an explicit list; this keeps the build context small
+# and keeps a local checkout's state (node_modules, a self-hosted run's data)
+# out of it.
+node_modules
+dist
+dist-nginx
+.git
+.github
+app/backend
+app/frontend/node_modules
+selfhost
+docs
+documentation
+*.md

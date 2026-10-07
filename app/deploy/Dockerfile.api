@@ -1,0 +1,80 @@
+# The backend is pure Python except for one thing: services/browser_check.py
+# drives Chromium. That is the only thing that can verify a link on a board
+# answering every HTTP request with a JavaScript challenge — Welcome to the
+# Jungle, the first-priority board, returns a byte-identical 202 for a live
+# posting and for invented nonsense. Chromium is most of this image's size;
+# `BROWSER_VERIFY=false` turns the feature off, and the app then reports those
+# links as unchecked rather than guessing.
+#
+# Until 2026-08-28 it needed Pango, Cairo and the Carlito font too, because
+# WeasyPrint rendered the résumé to PDF and the one-page fit had to be measured
+# against the same metrics a Mac produces. Both went with the PDF: the résumé is
+# now the candidate's own .docx, edited in place by python-docx, and nothing in
+# this image lays out a page any more.
+#
+# Python 3.14 to match backend/.python-version, not merely pyproject's >=3.12.
+# Both stages have to say it: the build stage's uv image is what creates the
+# venv, and its scripts and .so files are pinned to that interpreter's minor
+# version. A venv built on 3.12 and copied into a 3.14 runtime does not run.
+
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS build
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
+
+WORKDIR /app/backend
+
+# Dependencies only: --no-install-project keeps this layer keyed on the lock
+# file, so editing the source does not re-resolve 89 packages. The source goes on
+# PYTHONPATH in the runtime stage instead, which a src layout supports directly.
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+
+FROM python:3.14-slim-bookworm
+
+# Fonts for Chromium, which renders pages during link verification. Everything
+# a headless browser needs beyond these comes from `playwright install
+# --with-deps` below.
+RUN apt-get update && apt-get install --no-install-recommends -y \
+      fonts-liberation \
+      fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/backend/.venv /app/backend/.venv
+
+# Chromium and its shared libraries, into a path outside $HOME so it is found
+# whatever user the container runs as. `--with-deps` is what pulls the ~40 apt
+# packages a headless browser needs; installing the browser without them gets
+# you a binary that exits on launch.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN /app/backend/.venv/bin/playwright install --with-deps chromium \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/src /app/backend/src
+
+# DATA_DIR is named rather than left to default. config.py resolves a relative
+# path against a REPO_ROOT it infers by walking four parents up from its own
+# __file__ — which happens to be /app here, but only by arrangement of the two
+# COPYs above. Saying it outright means moving the source cannot silently move
+# the database.
+ENV PATH="/app/backend/.venv/bin:$PATH" \
+    PYTHONPATH=/app/backend/src \
+    PYTHONUNBUFFERED=1 \
+    DATA_DIR=/app/data \
+    BACKEND_HOST=0.0.0.0 \
+    BACKEND_PORT=8000
+
+WORKDIR /app
+
+EXPOSE 8000
+
+# 127.0.0.1 rather than "localhost": the name can resolve to ::1 first, and a
+# health check that cannot connect makes Traefik drop the container from its
+# load balancer — the API 502s while uvicorn sits there working.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+  CMD python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/health').read()" || exit 1
+
+# No --reload: it watches the source tree for edits that cannot happen here.
+CMD ["uvicorn", "tinternship_backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

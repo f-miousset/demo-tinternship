@@ -1,0 +1,98 @@
+/* The setup guide's styles. The app's palette (app/frontend/src/index.css):
+   ink neutrals, the flame gradient. Glass only on the floating header — the
+   control layer, never the content, as in the app. */
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --text: #18181b;
+  --muted: #52525b;
+  --line: #e4e4e7;
+  --code-bg: #f4f4f5;
+  --accent: #fd267d;
+  --flame-from: #ff7854;
+  --flame-to: #fd267d;
+  --glass: rgb(255 255 255 / 0.72);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0b090e;
+  --surface: #16131b;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --line: #2a2530;
+  --code-bg: #1d1923;
+  --accent: #ff6b9c;
+  --glass: rgb(22 19 27 / 0.72);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  padding: 0 max(16px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px, env(safe-area-inset-left));
+}
+a { color: var(--accent); }
+main { max-width: 760px; margin: 0 auto; padding-bottom: 64px; }
+
+.bar {
+  position: sticky;
+  top: max(8px, env(safe-area-inset-top));
+  z-index: 10;
+  max-width: 760px;
+  margin: 8px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 9999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 -1px 0 rgb(0 0 0 / 0.06), 0 6px 24px rgb(0 0 0 / 0.08);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; color: var(--text); min-height: 44px; }
+.brand img { width: 26px; height: 26px; }
+.switch { display: flex; padding: 3px; gap: 2px; border-radius: 9999px; background: var(--code-bg); }
+.switch button {
+  min-height: 38px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 9999px;
+  background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer;
+}
+:root[data-choice="system"] [data-set-theme="system"],
+:root[data-choice="light"] [data-set-theme="light"],
+:root[data-choice="dark"] [data-set-theme="dark"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
+
+.hero { padding: 40px 0 8px; }
+.hero h1 { font-size: clamp(30px, 7vw, 44px); line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+.flame { background: linear-gradient(120deg, var(--flame-from), var(--flame-to)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { color: var(--muted); font-size: 18px; margin: 0 0 20px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+  border-radius: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); color: var(--text); background: var(--surface);
+}
+.button.primary { border: 0; color: #fff; background: linear-gradient(120deg, var(--flame-from), var(--flame-to)); }
+
+h2 { font-size: 24px; margin: 48px 0 8px; letter-spacing: -0.01em; }
+h3 { font-size: 18px; margin: 28px 0 6px; }
+p, li { color: var(--text); }
+.muted { color: var(--muted); }
+code { font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 6px; }
+pre { background: var(--code-bg); border: 1px solid var(--line); padding: 14px 16px; border-radius: 14px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 20px; margin: 16px 0; }
+.steps { counter-reset: step; list-style: none; padding: 0; }
+.steps > li { counter-increment: step; position: relative; padding-left: 44px; margin: 22px 0; }
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 9999px;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 14px;
+  background: linear-gradient(120deg, var(--flame-from), var(--flame-to));
+}
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; display: block; overflow-x: auto; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); margin-top: 56px; padding-top: 16px; }

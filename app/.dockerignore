@@ -1,0 +1,28 @@
+# The build context is the repo root (both images need paths from it), so this
+# is what keeps a local checkout's working state out of the images. node_modules
+# matters most: `npm ci` installs it in the build stage, and copying the host's
+# tree over the top would put macOS binaries in a Linux image.
+.git
+.github
+.venv
+node_modules
+frontend/node_modules
+frontend/dist
+frontend/.vite
+backend/.venv
+data
+documentation
+.env
+.env.*
+*.db
+*.db-*
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+*.egg-info
+.DS_Store
+.claude
+.vscode
+.idea
