@@ -1251,7 +1251,7 @@
      "Docker"
     ],
     "posted_at": "23 days ago",
-    "posted_days_ago": 22,
+    "posted_days_ago": 23,
     "posted_on": "2026-09-15",
     "remote": "hybrid",
     "requirements": [
@@ -1288,7 +1288,7 @@
    "pinned": true,
    "silence": {
     "after_days": 14,
-    "days": 1,
+    "days": 2,
     "due": false,
     "last_activity": "2026-10-06T09:00:00+00:00",
     "sendable": true,
@@ -2311,7 +2311,7 @@
     "location": "Paris, France",
     "nice_to_have": [],
     "posted_at": "34 days ago",
-    "posted_days_ago": 33,
+    "posted_days_ago": 34,
     "posted_on": "2026-09-04",
     "remote": "hybrid",
     "requirements": [
@@ -2346,7 +2346,7 @@
    "pinned": false,
    "silence": {
     "after_days": 14,
-    "days": 17,
+    "days": 18,
     "due": true,
     "last_activity": "2026-09-20T09:00:00+00:00",
     "sendable": true,
@@ -3271,7 +3271,7 @@
      "French and English"
     ],
     "posted_at": "12 days ago",
-    "posted_days_ago": 11,
+    "posted_days_ago": 12,
     "posted_on": "2026-09-26",
     "remote": "hybrid",
     "requirements": [
@@ -3308,7 +3308,7 @@
    "pinned": false,
    "silence": {
     "after_days": 14,
-    "days": 0,
+    "days": 1,
     "due": false,
     "last_activity": "2026-10-07T09:00:00+00:00",
     "sendable": false,
@@ -3370,7 +3370,7 @@
      "Données de santé"
     ],
     "posted_at": "6 days ago",
-    "posted_days_ago": 5,
+    "posted_days_ago": 6,
     "posted_on": "2026-10-02",
     "remote": "hybrid",
     "requirements": [
@@ -3406,7 +3406,7 @@
    "pinned": true,
    "silence": {
     "after_days": 14,
-    "days": 2,
+    "days": 3,
     "due": false,
     "last_activity": "2026-10-05T09:00:00+00:00",
     "sendable": false,
@@ -4313,7 +4313,7 @@
     "location": "Paris, France",
     "nice_to_have": [],
     "posted_at": "58 days ago",
-    "posted_days_ago": 57,
+    "posted_days_ago": 58,
     "posted_on": "2026-08-11",
     "remote": "hybrid",
     "requirements": [
@@ -4347,7 +4347,7 @@
    "pinned": false,
    "silence": {
     "after_days": 14,
-    "days": 4,
+    "days": 5,
     "due": false,
     "last_activity": "2026-10-03T09:00:00+00:00",
     "sendable": true,
@@ -5277,7 +5277,7 @@
     "location": "Grenoble, France",
     "nice_to_have": [],
     "posted_at": "71 days ago",
-    "posted_days_ago": 70,
+    "posted_days_ago": 71,
     "posted_on": "2026-07-29",
     "remote": "hybrid",
     "requirements": [
@@ -5312,7 +5312,7 @@
    "pinned": false,
    "silence": {
     "after_days": 14,
-    "days": 44,
+    "days": 45,
     "due": false,
     "last_activity": "2026-08-24T09:00:00+00:00",
     "sendable": true,
@@ -5375,7 +5375,7 @@
     "location": "Paris, France",
     "nice_to_have": [],
     "posted_at": "40 days ago",
-    "posted_days_ago": 39,
+    "posted_days_ago": 40,
     "posted_on": "2026-08-29",
     "remote": "hybrid",
     "requirements": [
@@ -5409,7 +5409,7 @@
    "pinned": false,
    "silence": {
     "after_days": 14,
-    "days": 36,
+    "days": 37,
     "due": false,
     "last_activity": "2026-09-01T09:00:00+00:00",
     "sendable": false,
@@ -7174,7 +7174,7 @@
   "follow_ups": [
    {
     "application_id": 2,
-    "days_silent": 17,
+    "days_silent": 18,
     "draft": {
      "content": {
       "facts_used": [
@@ -7247,7 +7247,7 @@
    "nice_to_have": [],
    "pool": "search:energy",
    "posted_at": "2 days ago",
-   "posted_days_ago": 1,
+   "posted_days_ago": 2,
    "posted_on": "2026-10-06",
    "remote": "hybrid",
    "requirements": [
@@ -7300,7 +7300,7 @@
    "nice_to_have": [],
    "pool": "search:energy",
    "posted_at": "4 days ago",
-   "posted_days_ago": 3,
+   "posted_days_ago": 4,
    "posted_on": "2026-10-04",
    "remote": "hybrid",
    "requirements": [
@@ -7352,7 +7352,7 @@
    "nice_to_have": [],
    "pool": "search:energy",
    "posted_at": "8 days ago",
-   "posted_days_ago": 7,
+   "posted_days_ago": 8,
    "posted_on": "2026-09-30",
    "remote": "hybrid",
    "requirements": [
@@ -7405,7 +7405,7 @@
    "nice_to_have": [],
    "pool": "search:nlp",
    "posted_at": "3 days ago",
-   "posted_days_ago": 2,
+   "posted_days_ago": 3,
    "posted_on": "2026-10-05",
    "remote": "remote",
    "requirements": [
@@ -7458,7 +7458,7 @@
    "nice_to_have": [],
    "pool": "search:nlp",
    "posted_at": "6 days ago",
-   "posted_days_ago": 5,
+   "posted_days_ago": 6,
    "posted_on": "2026-10-02",
    "remote": "remote",
    "requirements": [
@@ -7509,7 +7509,7 @@
    "nice_to_have": [],
    "pool": "search:default",
    "posted_at": "1 days ago",
-   "posted_days_ago": 0,
+   "posted_days_ago": 1,
    "posted_on": "2026-10-07",
    "remote": "hybrid",
    "requirements": [
@@ -7560,7 +7560,7 @@
    "nice_to_have": [],
    "pool": "search:default",
    "posted_at": "4 days ago",
-   "posted_days_ago": 3,
+   "posted_days_ago": 4,
    "posted_on": "2026-10-04",
    "remote": "hybrid",
    "requirements": [
@@ -7611,7 +7611,7 @@
    "nice_to_have": [],
    "pool": "search:default",
    "posted_at": "2 days ago",
-   "posted_days_ago": 1,
+   "posted_days_ago": 2,
    "posted_on": "2026-10-06",
    "remote": "hybrid",
    "requirements": [
@@ -7663,7 +7663,7 @@
    "nice_to_have": [],
    "pool": "link",
    "posted_at": "5 days ago",
-   "posted_days_ago": 4,
+   "posted_days_ago": 5,
    "posted_on": "2026-10-03",
    "remote": "hybrid",
    "requirements": [
@@ -7715,7 +7715,7 @@
    "nice_to_have": [],
    "pool": "text",
    "posted_at": "today",
-   "posted_days_ago": null,
+   "posted_days_ago": 0,
    "posted_on": "2026-10-08",
    "remote": "hybrid",
    "requirements": [
@@ -7821,7 +7821,7 @@
     "Données de santé"
    ],
    "posted_at": "6 days ago",
-   "posted_days_ago": 5,
+   "posted_days_ago": 6,
    "posted_on": "2026-10-02",
    "remote": "hybrid",
    "requirements": [
@@ -7875,7 +7875,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "3 days ago",
-   "posted_days_ago": 2,
+   "posted_days_ago": 3,
    "posted_on": "2026-10-05",
    "remote": "onsite",
    "requirements": [
@@ -7932,7 +7932,7 @@
     "PyTorch"
    ],
    "posted_at": "5 days ago",
-   "posted_days_ago": 4,
+   "posted_days_ago": 5,
    "posted_on": "2026-10-03",
    "remote": "hybrid",
    "requirements": [
@@ -7989,7 +7989,7 @@
     "French and English"
    ],
    "posted_at": "12 days ago",
-   "posted_days_ago": 11,
+   "posted_days_ago": 12,
    "posted_on": "2026-09-26",
    "remote": "hybrid",
    "requirements": [
@@ -8050,7 +8050,7 @@
     "Docker"
    ],
    "posted_at": "23 days ago",
-   "posted_days_ago": 22,
+   "posted_days_ago": 23,
    "posted_on": "2026-09-15",
    "remote": "hybrid",
    "requirements": [
@@ -8105,7 +8105,7 @@
    "location": "Bordeaux, France",
    "nice_to_have": [],
    "posted_at": "11 days ago",
-   "posted_days_ago": 10,
+   "posted_days_ago": 11,
    "posted_on": "2026-09-27",
    "remote": "hybrid",
    "requirements": [
@@ -8157,7 +8157,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "9 days ago",
-   "posted_days_ago": 8,
+   "posted_days_ago": 9,
    "posted_on": "2026-09-29",
    "remote": "remote",
    "requirements": [
@@ -8209,7 +8209,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "14 days ago",
-   "posted_days_ago": 13,
+   "posted_days_ago": 14,
    "posted_on": "2026-09-24",
    "remote": "onsite",
    "requirements": [
@@ -8262,7 +8262,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "34 days ago",
-   "posted_days_ago": 33,
+   "posted_days_ago": 34,
    "posted_on": "2026-09-04",
    "remote": "hybrid",
    "requirements": [
@@ -8315,7 +8315,7 @@
    "location": "Lille, France",
    "nice_to_have": [],
    "posted_at": "27 days ago",
-   "posted_days_ago": 26,
+   "posted_days_ago": 27,
    "posted_on": "2026-09-11",
    "remote": "onsite",
    "requirements": [
@@ -8366,7 +8366,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "58 days ago",
-   "posted_days_ago": 57,
+   "posted_days_ago": 58,
    "posted_on": "2026-08-11",
    "remote": "hybrid",
    "requirements": [
@@ -8416,7 +8416,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "20 days ago",
-   "posted_days_ago": 19,
+   "posted_days_ago": 20,
    "posted_on": "2026-09-18",
    "remote": "hybrid",
    "requirements": [
@@ -8466,7 +8466,7 @@
    "location": "Paris, France",
    "nice_to_have": [],
    "posted_at": "40 days ago",
-   "posted_days_ago": 39,
+   "posted_days_ago": 40,
    "posted_on": "2026-08-29",
    "remote": "hybrid",
    "requirements": [
@@ -8516,7 +8516,7 @@
    "location": "Nice, France",
    "nice_to_have": [],
    "posted_at": "30 days ago",
-   "posted_days_ago": 29,
+   "posted_days_ago": 30,
    "posted_on": "2026-09-08",
    "remote": "onsite",
    "requirements": [
@@ -8566,7 +8566,7 @@
    "location": "Grenoble, France",
    "nice_to_have": [],
    "posted_at": "71 days ago",
-   "posted_days_ago": 70,
+   "posted_days_ago": 71,
    "posted_on": "2026-07-29",
    "remote": "hybrid",
    "requirements": [
@@ -8619,7 +8619,7 @@
    "location": "Rennes, France",
    "nice_to_have": [],
    "posted_at": "19 days ago",
-   "posted_days_ago": 18,
+   "posted_days_ago": 19,
    "posted_on": "2026-09-19",
    "remote": "hybrid",
    "requirements": [
@@ -23064,5 +23064,5 @@
   }
  },
  "text_import": "Tidewater Logistics — Data Engineering Intern (Le Havre)\n\nWe plan berths for 1,200 container-ship calls a year. Join the data team for six months from February 2027 to build the ingestion pipeline for vessel positions and port calls that feeds our berth-planning models. Python, SQL, and an interest in logistics. €1,300/month.",
- "version": "7485c5674f18"
+ "version": "de69f4ebc06a"
 }

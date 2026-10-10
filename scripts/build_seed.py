@@ -810,6 +810,17 @@ def main() -> None:
     ollama_models.available = lambda *a, **k: []
     ollama_models.is_reachable = lambda *a, **k: False
 
+    # The API computes ages against the wall clock — `posted_days_ago` through
+    # recency.today(), a silence's `days` through follow_up's utcnow(). Left
+    # alone, the seed changed every day and `make seed-check` went red on its
+    # own (2026-10-10). Pin both to the epoch the world is written against,
+    # which is also the instant store.ts::shiftDates measures from.
+    from tinternship_backend.services import follow_up as follow_up_service
+    from tinternship_backend.services import recency
+
+    recency.today = lambda: TODAY
+    follow_up_service.utcnow = lambda: EPOCH
+
     def get(path: str):
         response = client.get(path)
         response.raise_for_status()

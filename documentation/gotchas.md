@@ -49,6 +49,17 @@ the Vite root, and every class the UI uses lives in `app/frontend/src`. The
 root is the repository root now, and `ci/check-dist.sh` asserts three classes
 that exist only in the app's components.
 
+### The seed changed every day, and `seed-check` went red on its own — 2026-10-10
+"Two runs produce identical bytes" held only within one day. The builder
+serialises through the real API, which measures `posted_days_ago`
+(`recency.today()`) and a silence's `days` (`follow_up.utcnow()`) against the
+wall clock — so three days after the last `make seed`, every PR (two Renovate
+bumps that touched neither) failed `seed-check` with 42 changed numbers.
+`scripts/build_seed.py` now pins both clocks to `EPOCH`, the instant
+`store.ts::shiftDates` measures from, so a posting's age agrees with its
+`posted_at` text. Any new wall-clock read in `app/` will reopen this — the
+symptom is a `seed-check` diff of small integers only.
+
 ### A 404 for the seed in the dev console
 `make seed` deletes and rewrites `demo/static/`; a dev server that reloads in
 that window gets a 404 for `/demo-data/seed.json`. Harmless — reload after the

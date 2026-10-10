@@ -55,3 +55,6 @@ visitor's first load, `store.ts::shiftDates` moves every ISO timestamp — and
 the date-only `posted_on` / `next_action_date` — by the time since the epoch,
 so the deck always reads "posted 3 days ago", never "posted last autumn".
 Dates printed *inside* documents (a letter's date line) are not shifted.
+Ages the API derives from the clock (`posted_days_ago`, a silence's `days`)
+are computed *at* the epoch: the builder pins the backend's clocks to it, or
+the seed would change every day. → [gotchas.md](gotchas.md)
