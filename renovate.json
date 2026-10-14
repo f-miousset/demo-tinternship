@@ -87,6 +87,11 @@
         "typescript"
       ],
       "allowedVersions": "< 7.0.0"
+    },
+    {
+      "description": "Lock file maintenance gets its own release age: none. A lockfile refresh has no release timestamp, and minimumReleaseAgeBehaviour defaults to timestamp-required, so the repo-wide 3-day hold kept renovate/stability-days pending forever and these PRs never automerged (found 2026-10-14, PRs stuck since September). The gate still has to pass; the 3-day hold still applies to every direct-dependency update. Last rule wins, so this stays at the end.",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "minimumReleaseAge": null
     }
   ],
   "ignorePaths": [

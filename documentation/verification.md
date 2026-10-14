@@ -27,7 +27,8 @@ same targets, so there is one definition of each command.
   owner's machine.
 - **Renovate** (`renovate.json`) ignores `app/**`: a bump there would make the
   published code differ from the tag it claims to be. Patches, pins, digests
-  and devDependency minors automerge after the gate; majors, base images and
+  and devDependency minors automerge after the gate, as does lockfile
+  maintenance, **exempt from the 3-day hold since 2026-10-14** (`minimumReleaseAge: null`, the last `packageRules` entry): a lockfile refresh has no release timestamp, and Renovate's default `minimumReleaseAgeBehaviour: timestamp-required` left its `renovate/stability-days` pending forever, so it never automerged → `~/docker/documentation/verification-standard.md`; majors, base images and
   the workflow's own actions wait for a person. TypeScript is held below 7
   until typescript-eslint supports it — Renovate proposed the major within a
   minute of the first push (2026-10-08), from a config that had dropped the
