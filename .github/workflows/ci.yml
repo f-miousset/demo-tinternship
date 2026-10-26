@@ -100,7 +100,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       # Pinned to a full version: setup-uv publishes no floating major tags.
-      - uses: astral-sh/setup-uv@v10.3.1
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: ${{ needs.static.outputs.python-version }}
           enable-cache: true
@@ -142,7 +142,7 @@ jobs:
           cache: npm
           cache-dependency-path: app/frontend/package-lock.json
 
-      - uses: astral-sh/setup-uv@v10.3.1
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: ${{ needs.static.outputs.python-version }}
           enable-cache: true
