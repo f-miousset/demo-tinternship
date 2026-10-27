@@ -202,7 +202,7 @@ jobs:
 
       - name: Prove it still delivers
         if: needs.static.outputs.workflow-changed == 'true' && github.event.pull_request.head.repo.fork != true
-        uses: dawidd6/action-send-mail@v22
+        uses: dawidd6/action-send-mail@v23
         with:
           server_address: ${{ secrets.SMTP_HOST }}
           server_port: ${{ secrets.SMTP_PORT }}
@@ -248,7 +248,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: dawidd6/action-send-mail@v22
+      - uses: dawidd6/action-send-mail@v23
         with:
           server_address: ${{ secrets.SMTP_HOST }}
           server_port: ${{ secrets.SMTP_PORT }}
