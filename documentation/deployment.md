@@ -2,7 +2,7 @@
 
 ## The image (`Dockerfile`)
 
-Two stages: `node:24-alpine` runs `npm ci` and `vite build`; `nginx:1.31-alpine`
+Two stages: `node:26-alpine` runs `npm ci` and `vite build`; `nginx:1.31-alpine`
 serves `dist/`. Only the frontend sources, `demo/` and the build config are
 copied in — `app/backend` never enters the image (`.dockerignore`): the demo's
 server runs no Python and no agent. The `HEALTHCHECK` is in the Dockerfile, so
