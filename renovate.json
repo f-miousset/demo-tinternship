@@ -9,7 +9,6 @@
     "prCreation is `immediate`: ci.yml runs on push to main and on pull_request only, so a renovate/* branch has no checks of its own for `not-pending` to wait on. Automerge still waits for the gate to go green.",
     "No top-level `schedule`: minimumReleaseAge is the actual safety property, and prHourlyLimit caps the flow."
   ],
-  "dependencyDashboard": true,
   "timezone": "Etc/UTC",
   "labels": [
     "dependencies"
